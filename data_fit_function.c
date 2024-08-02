@@ -1,141 +1,167 @@
-
-double AlphaEnergy1 = 5.486; // MeV (85.2%)
-double AlphaEnergy2 = 5.443; // MeV (12.8%)
-double AEBR = 6.65625; // 85.2 / 12.8
-
-
-
-double user_equation(double *x,double *par){
+double user_equation(Double_t *x,Double_t *par){
 
 			double x0 = x[0];
 			double amplitude = par[0];
 			double mean = par[1];
 			double sigma = par[2];
+			
+			
+			double mean_2 = mean *(5.443 / 5.486); //MeV
+			double sigma_2 = sigma * (mean_2 / mean); 
+			double amplitude_2 = amplitude * sigma / 6.65625 / sigma_2;
 
-			if(x0 < mean - sigma) return 0;
+
+			
+			
+			
 			double exponent = - ( ( x0 - mean ) * (x0 - mean)) / ( 2 * sigma * sigma); 
-			double value = amplitude * std::exp(exponent);
+			double exponent_2 = - ( ( x0 - mean_2 ) * (x0 - mean_2)) / ( 2 * sigma_2 * sigma_2); 
+			
+			
+			double value_1 = amplitude * std::exp(exponent);
+			double value_2 = amplitude_2 * std::exp(exponent_2);		
+			
+			double value = value_1 + value_2;	
 
 			return value;
 }
 
 
 
+void Convert2APParameters(double *par, double &mean1, double &sigma1, double &amplitude1, double &mean2, double &sigma2, double &amplitude2){
+	
+	amplitude1 = par[0];
+	mean1 = par[1];
+	sigma1 = par[2];
+	mean2 = mean1 * (5.443 / 5.486);
+	sigma2 = (mean2 * sigma1) / mean1;
+	amplitude2 = amplitude1 * sigma1 / 6.65625/ sigma2;
+
+}
+
+
+
+
+
+
+
 void data_fit_function(){
-	for(int i = 2; i < 5 ; i++){
+	
+	gStyle -> SetTitleSize(0.09,"t");	
+	
+	
+	
+	
+	
+	
+	
+	
+	for(int i = 2; i <=2 ; ++i){
 		
 		double x1 = 1450;
 		double x2 = 1600;
-
-		
-
-			
-		if(i == 3 || i==4){
+		if(i ==3 || i == 4){
 			x1 = 2800;
 			x2 = 3200;
 		}
+		
+
+
+
+
+		auto cvs1 = new TCanvas(Form("analysis_alpha_det%d_1", i),"cvs1",1200,700);
+		cvs1 -> Divide(4,4);
+		auto cvs2 = new TCanvas(Form("analysis_alpha_det%d_2", i),"cvs2",1200,700);
+		cvs2 -> Divide(4,4);	
+
+
+
+		for(int j = 1; j <= 32; ++j){
 			
-		TCanvas *c1 = new TCanvas(Form("analysis_alpha_det%d_1",i),"canvas1",1200,700);
-		c1 -> Divide(4,4);
-			
-		TCanvas *c2 = new TCanvas(Form("analysis_alpha_det%d_2",i),"canvas2",1200,700);
-		c2 -> Divide(4,4);
-		
-		
-		
-		for(int j = 1; j < 33; j++){
-		
-			
-			if(i == 3 && (j == 22 || j == 23)){
+			if(i==3 && (j == 22 || j == 23)){
 				x1 = 2500;
 				x2 = 3500;
-
 			}
-			TVirtualPad* pad;
-			if(j<=16)
-				pad = c1 -> cd(j);
-			else
-				pad = c2 -> cd(j-16);
-			pad -> SetMargin(0.1,0.05,0.1,0.1);
+			TVirtualPad *pad;
+			
+			TString hist_name = Form("hist_det_%d_dch_%d",i,j);
+			TH1D *hist = new TH1D(hist_name," ",50,x1,x2);
 			
 			fstream file;
 			file.open(Form("det_%d_dch%d.txt", i,j),ios::in);
 			
-			TH1D *hist = new TH1D(Form("hist_d%dc%d",i,j)," ",100,x1,x2);
-			
-			
 			double value;
-
 			while(1){
 
-			
 				file >> value;
-				hist -> Fill(value);
-					
+				
+				hist -> Fill(value);	
+				
 				if(file.eof()) break;
 
 			}
-			hist -> Draw();
-		
+			if(j <= 16){
+				pad = cvs1 -> cd(j);
+			}
+			else{
+				pad = cvs2 -> cd(j-16);
+			}
+			
+
+			hist -> GetXaxis() -> SetLabelSize(0.065);
+			hist -> GetYaxis() -> SetLabelSize(0.065);
+
+			pad -> SetMargin(0.1,0.05,0.1,0.1);
+	//		auto hist2 = (TH1D *) hist -> Clone(hist_name);
+			
+				
+			
 			auto amplitude = hist -> GetBinContent( hist -> GetMaximumBin());	
 			auto mean = hist -> GetBinCenter( hist -> GetMaximumBin());	
 			auto sigma = hist -> GetStdDev();	
-				
+			
+
+			double energy_resolution = sigma / mean;
+						
 			double par[] = {amplitude, mean, sigma};
 		//	double x[] = {};
 			
 		//	cout << user_equation(x,par) << endl;	
 			TF1 *fit = new TF1("fit",user_equation,x1,x2,3);
 			fit -> SetParameters(par);
-			
-			hist -> Fit("fit","RNQ");
-			
-			double mean2 = mean *(5.443 / 5.486);
-			double amplitude2 = amplitude * (12.8 / 85.2);
-			double sigma2 = sigma * (5.443 / 5.486);
-			
-			double par2[] = {amplitude2, mean2, sigma2};
-			
-			TF1 *fit2 = new TF1("fit2","gaus(0)",x1,x2,3);
-		        fit2 -> SetLineColor(kBlue);	
-			fit2 -> SetParameters(par2);
-			
+			fit -> SetRange(mean - 0.5*sigma, mean * 3*sigma);	
+		
+			hist -> Draw();
+			hist -> Fit(fit,"RQ");
 
-    
-		//	fit2 -> SetLineColor(kBlue);
-
-			hist -> Fit(fit2,"RNQ");
-//			c1 -> Update();
-//			c2 -> Update();
+		
 			
+			auto parameters = fit -> GetParameters();
+			cout << "amplitude1 is " << parameters[0] << endl;
+			double mean1,sigma1,amplitude1,mean2,sigma2,amplitude2;
 
+			Convert2APParameters(parameters, mean1, sigma1, amplitude1, mean2, sigma2, amplitude2);
+			cout <<"mean1 is " <<  mean1 <<" and mean2 is "<< mean2 << endl;
+			auto fit_peak1 = new TF1("fit_peak1","gaus(0)",x1,x2);
+			auto fit_peak2 = new TF1("fit_peak2","gaus(0)",x1,x2);
+			fit_peak1 -> SetParameters(amplitude1,mean1,sigma1);
+			fit_peak2 -> SetParameters(amplitude2,mean2,sigma2);
 
+		
 
-			amplitude = fit -> GetParameter(0);
-			mean = fit -> GetParameter(1);
-			sigma = fit -> GetParameter(2);
-			
-			amplitude2 = fit2 -> GetParameter(0);
-			mean2 = fit2 -> GetParameter(1);
-			sigma2 = fit2 -> GetParameter(2);
-			
-			double par_1[] = {amplitude,mean,sigma};
-			double par_2[] = {amplitude2,mean2,sigma2};
-			
-			fit -> SetRange(mean - sigma, mean + 3*sigma);
-			fit2 -> SetRange(mean2 -3* sigma2, mean2+sigma2);
-
-	//		fit -> SetParameters(par_1);
-	//		fit2 -> SetParameters(par_2);
-
-
-			hist -> Fit(fit,"RQ+");
-			hist -> Fit(fit2,"RQ+");
+			fit_peak1 -> SetLineColor(kBlue);
+			fit_peak2 -> SetLineColor(kYellow);
+			fit_peak1 -> Draw("samel");
+			fit_peak2 -> Draw("samel");
 
 			
-			c1-> Update();
-			c2-> Update();
 			file.close();
+
+
+		//	hist -> Fit(fit2, "R+");
+		//	gStyle->SetOptStat(1111);
+//			c1 -> Update();
+//			c2 -> Update();			
 			
 		}
 
