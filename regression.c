@@ -47,7 +47,7 @@ void regression(){
 // allocating amp1 m1 s1 amp2 m2 s2 
 			
 			fstream file;
-			file.open(Form("parameter_of_det%d_dch%d.txt",i,j),ios::in);
+			file.open(Form("parameter_of_det%d_dch%d.txt",i,j),ios::in); // 각 디텍터,채널 번호마다 6개의 파라미터를 저장하였고, 이것을 par 배열에 저장한다.
 
 			double par[6];
 			for(int k = 0;  k < 6 ; k++){
@@ -57,8 +57,8 @@ void regression(){
 			}
 			
 			file.close();
-			derivative_1 = 5.486/ par[1];
-			derivative_2 =  5.443/ par[4];
+			derivative_1 = 5.486/ par[1]; // high_energy linear constant 
+			derivative_2 =  5.443/ par[4]; // low_energy linear constant
 			
 			
 			fstream file_data;	
@@ -67,18 +67,23 @@ void regression(){
 			TH2D *hist = new TH2D(namehist,namehist,1000,x1,x2,1000,5.0,6.0);	
 			
 		        cout << derivative_1 << endl;		
-
+			// energy는 adc를 calibration한 값. 5.4 ~ 5.7 [MeV] 사이로 나올 것이다.
+			// par[0] = 특정 디텍터, 채널에서의 Relatively_High_energy Alpha ADC의 Maximum Amplitude (5.486[MeV])
+			// par[1] = ~ ~ Mean Energy
+			// par[2] = ~ ~ std
+			// par[3] = ~ Relatively_Low_energy Alpha ADC의 Maximum Amplitude (5.443[MeV])
+			// par[4],par[5]는 각각 mean,std of 5.443[MeV]
 			Double_t adc;
 			Double_t energy;
 			while(1){
 				file_data >> adc;
 				if(file_data.eof()) break; 	
-				if((adc > par[1]-par[2]) && adc < (par[1]+ 3*par[2])){	
-					energy = derivative_1 * adc;
+				if((adc > par[1]-par[2]) && adc < (par[1]+ 3*par[2])){ // range를 (mean - sigma, mean + 3*sigma)로 잡았다.  	
+					energy = derivative_1 * adc; // relatively high alpha로 인식하고, adc값에 high_energy_calibation 상수를 곱한다.
 					
-					hist -> Fill(adc, energy);
+					hist -> Fill(adc, energy); 
 				}			
-				else if((adc > par[4] - par[5]) && (adc < (par[4]+par[5]))){
+				else if((adc > par[4] - par[5]) && (adc < (par[4]+par[5]))){ // low Alpha는 범위를 더 좁게 잡았다.
 					energy = derivative_2 * adc;
 
 					hist -> Fill(adc, energy);
