@@ -86,10 +86,10 @@ void two_peak_240811(){
 				legend -> Draw();
 
 			}	
-//		c1 -> cd();
-//		c1 -> SaveAs(Form("figures_det%d_1.pdf",det));
-//		c2 -> cd();
-//		c2 -> SaveAs(Form("figures_det%d_2.pdf",det));
+		c1 -> cd();
+		c1 -> SaveAs(Form("figures_det%d_1.jpg",det));
+		c2 -> cd();
+		c2 -> SaveAs(Form("figures_det%d_2.jpg",det));
 	}
 
 
