@@ -61,7 +61,7 @@ void ax_b(){
 			double detA2 = A2.Determinant();
 			// y = ax + b
 			double a = detA1 / detA;
-			double c = detA1 / detA;
+			double c = detA2 / detA;
 			
 			TString namehist = Form("hist_det%dcdch%d",det,dch);
 		
