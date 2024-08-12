@@ -26,6 +26,8 @@ void ax_b(){
 	
 			if(dch <=16) c1 -> cd(dch);	
 			else c2 -> cd(dch - 16);
+	
+	
 			TF1 *fit1 = (TF1 *)file -> Get(Form("fit_peak1_det == %d dch == %d",det,dch));
 			TF1 *fit2 = (TF1 *)file -> Get(Form("fit_peak2_det == %d dch == %d",det,dch));
 		
@@ -41,11 +43,13 @@ void ax_b(){
 			TVectorD b(2);
 			b(0) = Henergy; 
 			b(1) = Lenergy; 
-			
+			cout << A(0,0) << " " << A(1,0) << endl;	
 			double detA = A.Determinant();
 
-			if(detA == 0) cout << "It has not the trivial solution" << endl;
-			
+			if(detA == 0){
+			       	cout << "It has not the trivial solution" << endl;
+				
+			}
 			TMatrixD A1(A);
 			A1(0,0) = b(0);
 			A1(1,0) = b(1);
@@ -53,7 +57,7 @@ void ax_b(){
 
 			TMatrixD A2(A);
 			A2(0,1) = b(0);
-			A2(1,1) = b(0);
+			A2(1,1) = b(1);
 			double detA2 = A2.Determinant();
 			// y = ax + b
 			double a = detA1 / detA;
@@ -62,25 +66,33 @@ void ax_b(){
 			TString namehist = Form("hist_det%dcdch%d",det,dch);
 		
 			
-		//	TH2D *hist = new TH2D(namehist,"2D",100,mean2 - 100,Lenergy,100,mean1 + 100,Henergy);			
-			double x[2] = {mean2,mean1};	
-			double y[2] = {Lenergy,Henergy};	
+			TH2D *hist = new TH2D(namehist,"2D",100,mean2 - 100,Lenergy,100,mean1 + 100,Henergy);			
 			
-		//	hist -> Draw();
-			TGraph *graph = new TGraph(2,x,y);
+			hist -> Fill(mean1,Henergy);	
+			hist -> Fill(mean2,Lenergy);	
+			hist -> SetStats(0);	
+			hist -> Draw();
 			
-			graph -> SetLineColor(kRed);
-			graph -> SetLineWidth(2);	
-			graph -> SetMarkerStyle(21);
-			graph -> SetMarkerSize(1.5);
-			graph -> SetMarkerColor(kBlue);
-			
+			TMarker *marker1 = new TMarker(mean1, Henergy,20);
+			marker1 -> SetMarkerColor(kRed);	
+			marker1 -> Draw();
 
-			graph -> Draw("PL SAME");
+			TMarker *marker2 = new TMarker(mean2, Lenergy,20);
+		
+			marker2 -> SetMarkerColor(kBlue);	
+			marker2 -> Draw();
 			
-			write << det <<" " << dch <<" " <<  a <<" " << c << endl;
+			TLegend *leg = new TLegend(0.6,0.3,0.8,0.5);
+			leg -> AddEntry(marker1,"High alpha Energy");
+			leg -> AddEntry(marker2,"Low alpha Energy");
+			leg -> Draw();
 			
-
+			if(det == 3 && (dch == 16 || dch > 23))
+				
+				write << det <<" " << dch <<" " <<  -999 <<" " << -999 << endl;
+			else
+				write << det <<" " << dch <<" " <<  a <<" " << c << endl;
+			
 		}
 	}
 

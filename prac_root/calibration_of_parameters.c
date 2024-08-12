@@ -77,19 +77,23 @@ void calibration_of_parameters(){
 				auto fit_peak2 = new TF1("fit_peak2","gaus(0)",x1,x2);
 				fit_peak1 -> SetParameters(amplitude1, mean1, sigma1);
 				fit_peak2 -> SetParameters(amplitude2, mean2, sigma2);
-	//			fit_peak1 -> SetLineColor(kRed);
-	//			fit_peak2 -> SetLineColor(kYellow);
+				fit_peak1 -> SetLineColor(kRed);
+				fit_peak2 -> SetLineColor(kYellow);
 				fit_peak1 -> Draw("samel");
 				fit_peak2 -> Draw("samel");
-			
+				if(det == 3 && (dch ==16 || dch > 23)){
+					cout << Form("empty entries : %d", dch);
+					fit_peak1 -> SetParameters(-999,-999,-999);	
+					fit_peak2 -> SetParameters(-999,-999,-999);	
+				}
 				fit_peak1 -> Write(Form("fit_peak1_det == %d dch == %d",det,dch));
 				fit_peak2 -> Write(Form("fit_peak2_det == %d dch == %d",det,dch));
 			
-		/*		TLegend *legend = new TLegend(0.1,0.6,0.3,0.8);
+				TLegend *legend = new TLegend(0.1,0.6,0.3,0.8);
 				legend -> AddEntry(fit_peak1,"High_Alpha","l");
 				legend -> AddEntry(fit_peak2,"Low_Alpha","l");
-				legend -> Draw();
-*/
+				legend -> Draw("same");
+
 			}	
 /*		c1 -> cd();
 		c1 -> SaveAs(Form("figures_det%d_1.pdf",det));

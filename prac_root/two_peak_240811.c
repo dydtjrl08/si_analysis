@@ -61,13 +61,12 @@ void two_peak_240811(){
 				double energyResolution = sigma / mean;
 
 				TF1 *fit = new TF1("fit",FxTwoAlpha,x1 ,x2, 4);
-
+				
 				fit -> SetParameters(adcOffset,energyResolution,mean,amplitude);
 				fit -> SetParLimits(0,0,0);
 				fit -> SetRange(mean - 0.5*sigma, mean+ 3*sigma);
 				hist -> Fit(fit,"RQN");
-
-			
+				gStyle -> SetOptStat("i");	
 				auto parameters = fit -> GetParameters();
 				double mean1,sigma1,amplitude1,mean2,sigma2,amplitude2;
 				Convert2APParameters(parameters,mean1,sigma1,amplitude1,mean2,sigma2,amplitude2);
@@ -87,10 +86,10 @@ void two_peak_240811(){
 				legend -> Draw();
 
 			}	
-		c1 -> cd();
-		c1 -> SaveAs(Form("figures_det%d_1.pdf",det));
-		c2 -> cd();
-		c2 -> SaveAs(Form("figures_det%d_2.pdf",det));
+//		c1 -> cd();
+//		c1 -> SaveAs(Form("figures_det%d_1.pdf",det));
+//		c2 -> cd();
+//		c2 -> SaveAs(Form("figures_det%d_2.pdf",det));
 	}
 
 
