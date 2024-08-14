@@ -167,10 +167,10 @@ void data_fit_function(){
 			fit_peak1 -> GetParameters(&param[0]);
 			fit_peak2 -> GetParameters(&param[3]);
 			
-			auto Total = new TF1("Total","gaus(0) + gaus(3)",x1,x2);
-			Total -> SetLineColor(kBlack);
-			Total -> SetParameters(param);
-			hist -> Fit(Total,"R+ samel");
+//			auto Total = new TF1("Total","gaus(0) + gaus(3)",x1,x2);
+//			Total -> SetLineColor(kBlack);
+//			Total -> SetParameters(param);
+//			hist -> Fit(Total,"R+ samel");
 	//		Total -> Draw("samel");
 			file.close();
 
