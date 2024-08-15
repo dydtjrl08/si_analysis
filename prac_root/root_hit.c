@@ -23,11 +23,15 @@ void root_hit(){
 	TCanvas *c1 = new TCanvas("test","2d",1200,800);	
 	
 	for(int i = 1; i < 17 ; i++){		
-		
-		TString namehist = Form("det1 == 2 && dch2 == %d",i);
-		TH2D *hist = new TH2D(namehist,Form("dch2 == %d",i),1000,0,8000,1000,0,3200);
-		tree -> Draw("adc2:adc1",namehist);
-		c1 -> SaveAs(Form("det1_1_dch2_%d.jpg",i));
+//		cout << tree -> GetEntries("det1 == 1") << endl;	
+//		cout << tree -> GetEntries("det1 == 2") << endl;	
+//		cout << tree -> GetEntries("det2 == 1") << endl;	
+//		cout << tree -> GetEntries("det2 == 2") << endl;	
+//		cout << tree -> GetEntries("det1 == 2") << endl;	
+		TString namehist = Form("det1 == %d",2);
+		TH2D *hist = new TH2D(namehist,"q",10000,0,8000,10000,0,8000);
+		tree -> Draw("adc2:adc1",namehist,"COLZ");
+		c1 -> SaveAs(Form("det1_2_dch2_%d.jpg",i));
 	}
 
 }
