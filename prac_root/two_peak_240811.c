@@ -4,15 +4,28 @@ Double_t LowAlpha = 5.443; // [MeV]
 Double_t FxTwoAlpha(Double_t *xp, Double_t *par);
 void Convert2APParameters(double *par, double &mean1, double &sigma1, double &amplitude1, double &mean2, double &sigma2, double &amplitude2);
 
+struct TwoDoubles{
+	double a;
+	double b;
+};
+TwoDoubles MatrixOperation(double mean1, double mean2){
+	TwoDoubles result;
+	double a = (HighAlpha - LowAlpha)/ (mean1 - mean2);
+	double b = HighAlpha - mean1*a;
+	result.a = a;
+	result.b = b;		
+	return result;
+}	
 void two_peak_240811(){
-
+	std::cout << std::setprecision(30);
 
 	TFile *file = new TFile("RUN511.ch.root","read");
 	TTree *tree = (TTree *)file -> Get("channels");
 	
 	TFile *write = new TFile("constant.root","RECREATE");	
 	TTree *t1 = new TTree("t1","constants");
-	
+	fstream constant_file;
+	constant_file.open("constant.txt",ios::out);	
 	Double_t a,b;
 	Short_t detector,channel;
 	t1 -> Branch("a",&a,"a/D");
@@ -20,7 +33,6 @@ void two_peak_240811(){
 
 	t1 -> Branch("detector",&detector,"detector/S");
 	t1 -> Branch("channel",&channel,"channel/S");
-//	tree -> Print();	
 	for(auto det : {2,3,4}){
 			
 			double x1 = 1450;
@@ -58,8 +70,6 @@ void two_peak_240811(){
 				hist -> GetXaxis() -> SetLabelSize(0.065);	
 				hist -> GetYaxis() -> SetLabelSize(0.065);	
 				tree -> Draw(TString("adc>>")+name_of_hist,cut,"");								
-				if(hist -> GetEntries() == 0)
-					continue;	
 			//	TH1D *hist = (TH1D *)gPad -> GetPrimitive("htemp");	
 				
 				double amplitude = hist -> GetBinContent(hist -> GetMaximumBin());	
@@ -115,7 +125,7 @@ void two_peak_240811(){
 					}
 				}
 
-				if(det ==2 && dch == 24){
+				else if(det ==2 && dch == 24){
 					hist -> Fit(fit, "RN");
 				}
 				else{
@@ -143,40 +153,53 @@ void two_peak_240811(){
 				legend -> AddEntry(fit_peak2,"Low_Alpha","l");
 				legend -> Draw();
 				
-				TMatrixD A(2,2);
-				A(0,0) = mean1; A(0,1) = 1.0;
-				A(1,0) = mean2; A(1,1) = 1.0;
-
+		/*		TMatrixD A(2,2);
+				A(0,0) = mean1; A(0,1) = 1;
+				A(1,0) = mean2; A(1,1) = 1;
+				
 				TVectorD y(2);
-				y(0) = HighAlpha;
-				y(1) = LowAlpha;
-				Double_t DetA = A.Determinant();
-				if(DetA == 0 ){ 
-					a = -999.;
-					b = -999.;
+				y[0] = HighAlpha;
+				y[1] = LowAlpha;
+				cout <<(long double) A.Determinant() << endl;
+				
+				TDecompLU lu(A);
+				if(!lu.Decompose()){
+					cout << "not solvable" << endl;
+					a = -999;
+					b = -999;
 					cout << Form("det = %d dch = %d doesn't have the solution",det,dch) << endl;
 					detector = (Short_t)det;
 					channel = (Short_t)dch;
 					t1 -> Fill();
 				}
-				else{
-					TMatrixD A1(A);
-					A1(0,0)	= y(0);
-					A1(1,0) = y(1);
-					double DetA1 = (Double_t)A1.Determinant();
-				
-					TMatrixD A2(A);
-					A2(0,1)	= y(0);
-					A2(1,1) = y(1);
-					double DetA2 =(Double_t) A2.Determinant();
-					
-					a = (Double_t)DetA1 / DetA;
-					b = (Double_t)DetA2 / DetA;
-					detector = (Short_t)det;
-					channel = (Short_t)dch;
+				Bool_t ok;
+
+				TVectorD x = lu.Solve(y,ok);	
+				if(!lu.Solve(y,x)){
+					cout << det << " " << dch << "is " << "sigular. " << endl;
+					a= -999;
+					b = -999;
+					detector = det;
+					channel = dch;
 					t1 -> Fill();
-					cout << "b is " << b << endl;
+					
+					
+				}*/
+				TwoDoubles sol = MatrixOperation(mean1,mean2);
+				if(hist -> GetEntries() == 0){
+					a = -999;
+					b = -999;
 				}
+				else{
+					 a = sol.a;
+					 b = sol.b;
+				}		
+						
+				detector = (Short_t)det;
+				channel = (Short_t)dch;
+				t1 -> Fill();
+				constant_file << a <<" " << b << " " << det << " " << dch << endl;
+				
 			//	cout << det << " "<< dch << " " << mean1 << " " << sigma1 << " " << mean2 << " " << sigma2 << endl;
 		//		cout << mean1 / mean2 << " " << 5.486 / 5.443 << endl;
 		
@@ -190,7 +213,7 @@ void two_peak_240811(){
 	t1 -> Write();
 	t1 -> Print();
 	write -> Close();
-
+	constant_file.close();
 }
 
 
