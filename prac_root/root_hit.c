@@ -29,8 +29,8 @@ void root_hit(){
 //		cout << tree -> GetEntries("det2 == 2") << endl;	
 //		cout << tree -> GetEntries("det1 == 2") << endl;	
 		TString namehist = Form("det1 == %d",2);
-		TH2D *hist = new TH2D(namehist,"q",10000,0,8000,10000,0,8000);
-		tree -> Draw("adc2:adc1",namehist,"COLZ");
+		TH2I *hist = new TH2I(namehist,"q",8000,0,8000,8000,0,8000);
+		tree -> Draw("adc2:adc1",namehist);
 		c1 -> SaveAs(Form("det1_2_dch2_%d.jpg",i));
 	}
 

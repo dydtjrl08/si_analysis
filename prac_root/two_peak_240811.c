@@ -6,14 +6,11 @@ void Convert2APParameters(double *par, double &mean1, double &sigma1, double &am
 
 struct TwoDoubles{
 	double a;
-	double b;
 };
 TwoDoubles MatrixOperation(double mean1, double mean2){
 	TwoDoubles result;
 	double a = (HighAlpha - LowAlpha)/ (mean1 - mean2);
-	double b = HighAlpha - mean1*a;
 	result.a = a;
-	result.b = b;		
 	return result;
 }	
 void two_peak_240811(){
@@ -118,14 +115,18 @@ void two_peak_240811(){
 
 				if(det == 3){
 					if(dch == 22){
-						fit -> SetRange(2750, mean+ 3*sigma);
+						
+						fit -> SetParLimits(1,2900,mean +3*sigma);
+						fit -> SetParLimits(2,1200,1400);
+						
 					}
 					else if(dch == 23){
-						fit -> SetRange(2750, mean + 3*sigma);
+						fit -> SetRange(2800, mean + 3*sigma);
+						fit -> SetParLimits(2,700,1100);
+					
 					}
 				}
 
-				
 				hist -> Fit(fit,"RQN");
 				gStyle -> SetOptStat("i");
 				fit -> SetLineColor(kBlue);
@@ -140,15 +141,36 @@ void two_peak_240811(){
 				fit_peak1 -> SetParameters(amplitude1, mean1, sigma1);
 				fit_peak2 -> SetParameters(amplitude2, mean2, sigma2);
 //				fit_peak1 -> SetRange(mean1 - 0.5*sigma1, mean1 + 3 *sigma1);
+			
+				if(det == 3 && (dch == 22 || dch == 23)) {
+					cout << mean1 << " " << mean2 << endl;
+					cout << mean1/mean2 << " " << HighAlpha/LowAlpha << endl;
+						}	
+					
 				fit_peak1 -> SetLineColor(kRed);
 				fit_peak2 -> SetLineColor(kGreen+2);
 				fit_peak1 -> Draw("samel");
 				fit_peak2 -> Draw("samel");
+				double p0 = fit -> GetParameter(1);
+				double p1 = fit_peak1 -> GetParameter(1);
+				double p2 = fit_peak2 -> GetParameter(1);
+				cout << p0 << " is total avarage and " << p1 << "is the average of adc about HighAlpha" << endl;
+			/*	if(det == 3 && (dch == 22 || dch == 23)) {
+					cout << mean1 << " " << mean2 << endl;
+					cout << mean1/mean2 << " " << HighAlpha/LowAlpha << endl;
+					cout << p1/p2 << endl;
+						}	*/
 				TLegend *legend = new TLegend(0.1,0.6,0.3,0.8);
 				legend -> AddEntry(fit_peak1,"High_Alpha","l");
 				legend -> AddEntry(fit_peak2,"Low_Alpha","l");
 				legend -> Draw();
-				
+				TLine *line1 = new TLine(p1,0,p1,fit_peak1 -> GetMaximum());
+				TLine *line2 = new TLine(p2,0,p2,fit_peak1 -> GetMaximum());
+				line1 -> SetLineColor(kRed);
+				line2 -> SetLineColor(kRed);
+				line1 -> Draw();
+				line2 -> Draw();
+				cout << p1/p2 << endl;
 		/*		TMatrixD A(2,2);
 				A(0,0) = mean1; A(0,1) = 1;
 				A(1,0) = mean2; A(1,1) = 1;
@@ -184,17 +206,15 @@ void two_peak_240811(){
 				TwoDoubles sol = MatrixOperation(mean1,mean2);
 				if(hist -> GetEntries() == 0){
 					a = -999;
-					b = -999;
 				}
 				else{
 					 a = sol.a;
-					 b = sol.b;
 				}		
 						
 				detector = (Short_t)det;
 				channel = (Short_t)dch;
 				t1 -> Fill();
-				constant_file << a <<" " << b << " " << det << " " << dch << endl;
+				constant_file << a << " " << det << " " << dch << endl;
 				
 			//	cout << det << " "<< dch << " " << mean1 << " " << sigma1 << " " << mean2 << " " << sigma2 << endl;
 		//		cout << mean1 / mean2 << " " << 5.486 / 5.443 << endl;
@@ -208,8 +228,6 @@ void two_peak_240811(){
 
 	t1 -> Write();
 	t1 -> Print();
-	write -> Close();
-	constant_file.close();
 }
 
 
