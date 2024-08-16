@@ -193,8 +193,8 @@ void two_peak_240811(){
 						
 				detector = (Short_t)det;
 				channel = (Short_t)dch;
-			//	t1 -> Fill();
-			//	constant_file << a <<" " << b << " " << det << " " << dch << endl;
+				t1 -> Fill();
+				constant_file << a <<" " << b << " " << det << " " << dch << endl;
 				
 			//	cout << det << " "<< dch << " " << mean1 << " " << sigma1 << " " << mean2 << " " << sigma2 << endl;
 		//		cout << mean1 / mean2 << " " << 5.486 / 5.443 << endl;
@@ -206,10 +206,10 @@ void two_peak_240811(){
 		c2 -> SaveAs(Form("figures_det%d_2.jpg",det));
 	}
 
-//	t1 -> Write();
-//	t1 -> Print();
-//	write -> Close();
-//	constant_file.close();
+	t1 -> Write();
+	t1 -> Print();
+	write -> Close();
+	constant_file.close();
 }
 
 
