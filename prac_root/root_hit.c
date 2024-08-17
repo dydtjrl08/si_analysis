@@ -19,19 +19,21 @@ void root_hit(){
 	tree -> SetBranchAddress("dch2",&dch2);
 	tree -> SetBranchAddress("adc1",&adc1);
 	tree -> SetBranchAddress("adc2",&adc2);
-
-	TCanvas *c1 = new TCanvas("test","2d",1200,800);	
 	
-	for(int i = 1; i < 17 ; i++){		
-//		cout << tree -> GetEntries("det1 == 1") << endl;	
-//		cout << tree -> GetEntries("det1 == 2") << endl;	
-//		cout << tree -> GetEntries("det2 == 1") << endl;	
-//		cout << tree -> GetEntries("det2 == 2") << endl;	
-//		cout << tree -> GetEntries("det1 == 2") << endl;	
-		TString namehist = Form("det1 == %d",2);
-		TH2I *hist = new TH2I(namehist,"q",8000,0,8000,8000,0,8000);
-		tree -> Draw("adc2:adc1",namehist);
-		c1 -> SaveAs(Form("det1_2_dch2_%d.jpg",i));
+	TH2D *hist = new TH2D("hist","Histogram title;E+dE; dE" ,500,0,10000,800,0,8000);
+	hist -> GetXaxis() -> SetRangeUser(0,8000);
+	hist -> GetYaxis() -> SetRangeUser(0,7000);
+	TCanvas *c1 = new TCanvas("test","2d",1200,800);	
+	int entries = tree -> GetEntries();
+//adc2 is dE
+//adc1 is E
+//adc1 + adc2 is total energy 
+	for(int i = 1; i <= entries; i++){
+		tree -> GetEntry(i);		
+		if(det1 == 2 && det2 == 1){
+			hist -> Fill(adc1+adc2,adc2);
+		}
+//		c1 -> SaveAs(Form("det1_2_dch2_%d.jpg",i));
 	}
-
+	hist -> Draw("COLZ");
 }

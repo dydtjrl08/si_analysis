@@ -30,7 +30,7 @@ void two_peak_240811(){
 
 	t1 -> Branch("detector",&detector,"detector/S");
 	t1 -> Branch("channel",&channel,"channel/S");
-	for(auto det : {2,3,4}){
+	for(auto det : {3}){
 			
 			double x1 = 1450;
 			double x2 = 1600;
@@ -45,7 +45,7 @@ void two_peak_240811(){
 			TCanvas *c2 = new TCanvas(Form("Fitting_of_det%d_2", det),Form("det== %d_2",det),1200,700);	
 			c2 -> Divide(4,4);
 
-			for(auto dch = 1; dch <=32; dch++){
+			for(auto dch = 17; dch <=23; dch++){
 				
 
 				if (det == 3 && (dch == 22|| dch == 23)){
@@ -61,9 +61,14 @@ void two_peak_240811(){
 				TCut cut_dch = Form("dch == %d",dch);	
 					
 				TCut cut = cut_det && cut_dch;	
-				
+				TH1D *hist;	
 				TString name_of_hist = Form("hist_d%d_%d", det, dch);
-				TH1D *hist = new TH1D(name_of_hist, cut, 50, x1, x2);
+				if(det == 3 && (dch == 22 || dch == 23)){
+					hist = new TH1D(name_of_hist, cut, 125, x1, x2);
+				}
+				else{		
+					hist = new TH1D(name_of_hist, cut, 50, x1, x2);
+				}
 				hist -> GetXaxis() -> SetLabelSize(0.065);	
 				hist -> GetYaxis() -> SetLabelSize(0.065);	
 				tree -> Draw(TString("adc>>")+name_of_hist,cut,"");								
@@ -116,8 +121,6 @@ void two_peak_240811(){
 				if(det == 3){
 					if(dch == 22){
 						
-						fit -> SetParLimits(1,2900,mean +3*sigma);
-						fit -> SetParLimits(2,1200,1400);
 						
 					}
 					else if(dch == 23){
@@ -143,8 +146,8 @@ void two_peak_240811(){
 //				fit_peak1 -> SetRange(mean1 - 0.5*sigma1, mean1 + 3 *sigma1);
 			
 				if(det == 3 && (dch == 22 || dch == 23)) {
-					cout << mean1 << " " << mean2 << endl;
-					cout << mean1/mean2 << " " << HighAlpha/LowAlpha << endl;
+					cout <<"test " << mean1 << " " << mean2 << endl;
+					cout <<"test1 " << mean1/mean2 << " " << HighAlpha/LowAlpha << endl;
 						}	
 					
 				fit_peak1 -> SetLineColor(kRed);
@@ -170,7 +173,6 @@ void two_peak_240811(){
 				line2 -> SetLineColor(kRed);
 				line1 -> Draw();
 				line2 -> Draw();
-				cout << p1/p2 << endl;
 		/*		TMatrixD A(2,2);
 				A(0,0) = mean1; A(0,1) = 1;
 				A(1,0) = mean2; A(1,1) = 1;
@@ -211,23 +213,23 @@ void two_peak_240811(){
 					 a = sol.a;
 				}		
 						
-				detector = (Short_t)det;
-				channel = (Short_t)dch;
-				t1 -> Fill();
-				constant_file << a << " " << det << " " << dch << endl;
+			//	detector = (Short_t)det;
+			//	channel = (Short_t)dch;
+			//	t1 -> Fill();
+			//	constant_file << a << " " << det << " " << dch << endl;
 				
 			//	cout << det << " "<< dch << " " << mean1 << " " << sigma1 << " " << mean2 << " " << sigma2 << endl;
 		//		cout << mean1 / mean2 << " " << 5.486 / 5.443 << endl;
 		
 			}	
-		c1 -> cd();
-		c1 -> SaveAs(Form("figures_det%d_1.jpg",det));
-		c2 -> cd();
-		c2 -> SaveAs(Form("figures_det%d_2.jpg",det));
+//		c1 -> cd();
+//		c1 -> SaveAs(Form("figures_det%d_1.jpg",det));
+//		c2 -> cd();
+//		c2 -> SaveAs(Form("figures_det%d_2.jpg",det));
 	}
 
-	t1 -> Write();
-	t1 -> Print();
+//	t1 -> Write();
+//	t1 -> Print();
 }
 
 
