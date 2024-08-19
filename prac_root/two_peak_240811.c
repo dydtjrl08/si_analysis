@@ -23,14 +23,13 @@ void two_peak_240811(){
 	TTree *t1 = new TTree("t1","constants");
 	fstream constant_file;
 	constant_file.open("constant.txt",ios::out);	
-	Double_t a,b;
+	Double_t a;
 	Short_t detector,channel;
 	t1 -> Branch("a",&a,"a/D");
-	t1 -> Branch("b",&b,"b/D");
 
 	t1 -> Branch("detector",&detector,"detector/S");
 	t1 -> Branch("channel",&channel,"channel/S");
-	for(auto det : {3}){
+	for(auto det : {2,3,4}){
 			
 			double x1 = 1450;
 			double x2 = 1600;
@@ -45,7 +44,7 @@ void two_peak_240811(){
 			TCanvas *c2 = new TCanvas(Form("Fitting_of_det%d_2", det),Form("det== %d_2",det),1200,700);	
 			c2 -> Divide(4,4);
 
-			for(auto dch = 17; dch <=23; dch++){
+			for(auto dch = 1; dch <=32; dch++){
 				
 
 				if (det == 3 && (dch == 22|| dch == 23)){
@@ -120,12 +119,10 @@ void two_peak_240811(){
 
 				if(det == 3){
 					if(dch == 22){
-						
-						
+						fit -> SetRange(2750, mean + 3*sigma);
 					}
 					else if(dch == 23){
-						fit -> SetRange(2800, mean + 3*sigma);
-						fit -> SetParLimits(2,700,1100);
+						fit -> SetRange(2750, mean + 3*sigma);
 					
 					}
 				}
@@ -145,10 +142,6 @@ void two_peak_240811(){
 				fit_peak2 -> SetParameters(amplitude2, mean2, sigma2);
 //				fit_peak1 -> SetRange(mean1 - 0.5*sigma1, mean1 + 3 *sigma1);
 			
-				if(det == 3 && (dch == 22 || dch == 23)) {
-					cout <<"test " << mean1 << " " << mean2 << endl;
-					cout <<"test1 " << mean1/mean2 << " " << HighAlpha/LowAlpha << endl;
-						}	
 					
 				fit_peak1 -> SetLineColor(kRed);
 				fit_peak2 -> SetLineColor(kGreen+2);
@@ -157,22 +150,16 @@ void two_peak_240811(){
 				double p0 = fit -> GetParameter(1);
 				double p1 = fit_peak1 -> GetParameter(1);
 				double p2 = fit_peak2 -> GetParameter(1);
-				cout << p0 << " is total avarage and " << p1 << "is the average of adc about HighAlpha" << endl;
-			/*	if(det == 3 && (dch == 22 || dch == 23)) {
-					cout << mean1 << " " << mean2 << endl;
-					cout << mean1/mean2 << " " << HighAlpha/LowAlpha << endl;
-					cout << p1/p2 << endl;
-						}	*/
 				TLegend *legend = new TLegend(0.1,0.6,0.3,0.8);
 				legend -> AddEntry(fit_peak1,"High_Alpha","l");
 				legend -> AddEntry(fit_peak2,"Low_Alpha","l");
 				legend -> Draw();
-				TLine *line1 = new TLine(p1,0,p1,fit_peak1 -> GetMaximum());
+			/*	TLine *line1 = new TLine(p1,0,p1,fit_peak1 -> GetMaximum());
 				TLine *line2 = new TLine(p2,0,p2,fit_peak1 -> GetMaximum());
 				line1 -> SetLineColor(kRed);
 				line2 -> SetLineColor(kRed);
 				line1 -> Draw();
-				line2 -> Draw();
+				line2 -> Draw();*/
 		/*		TMatrixD A(2,2);
 				A(0,0) = mean1; A(0,1) = 1;
 				A(1,0) = mean2; A(1,1) = 1;
@@ -213,23 +200,23 @@ void two_peak_240811(){
 					 a = sol.a;
 				}		
 						
-			//	detector = (Short_t)det;
-			//	channel = (Short_t)dch;
-			//	t1 -> Fill();
-			//	constant_file << a << " " << det << " " << dch << endl;
+				detector = (Short_t)det;
+				channel = (Short_t)dch;
+				t1 -> Fill();
+				constant_file << a << " " << det << " " << dch << endl;
 				
 			//	cout << det << " "<< dch << " " << mean1 << " " << sigma1 << " " << mean2 << " " << sigma2 << endl;
 		//		cout << mean1 / mean2 << " " << 5.486 / 5.443 << endl;
 		
 			}	
-//		c1 -> cd();
-//		c1 -> SaveAs(Form("figures_det%d_1.jpg",det));
-//		c2 -> cd();
-//		c2 -> SaveAs(Form("figures_det%d_2.jpg",det));
+		c1 -> cd();
+		c1 -> SaveAs(Form("figures_det%d_1.jpg",det));
+		c2 -> cd();
+		c2 -> SaveAs(Form("figures_det%d_2.jpg",det));
 	}
 
-//	t1 -> Write();
-//	t1 -> Print();
+	t1 -> Write();
+	t1 -> Print();
 }
 
 
